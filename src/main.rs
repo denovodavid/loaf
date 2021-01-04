@@ -23,6 +23,8 @@ const SOURCE_CODE: &str = r###"
 =
 + - * /
 
+🚀* 🚀g
+
 /*
 and i'm many comments, 45 "567" anything goes here!
 */
@@ -57,8 +59,8 @@ fn main() {
         (TokenName::Punctuator, r"^[\{\}\.\+\-=/\*]"),
         (
             TokenName::Identifier,
-            // [\p{Emoji}\p{Emoji_Component}&&[^#*]]
-            r"^[\p{L}_[\p{Emoji}\p{Emoji_Component}&&[^#*]]][\p{L}\p{N}_[\p{Emoji}\p{Emoji_Component}&&[^#*]]]*",
+            // [\p{Emoji}\p{Emoji_Component}&&[^#\*]]
+            r"^[\p{L}_[\p{Emoji}\p{Emoji_Component}&&[^#\*]]][\p{L}\p{N}_[\p{Emoji}\p{Emoji_Component}&&[^#\*]]]*",
         ),
     ];
     let res = specs
