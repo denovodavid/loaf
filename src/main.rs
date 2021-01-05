@@ -2,7 +2,7 @@ use regex::Regex;
 
 const SOURCE_CODE: &str = r###"
 // hello, I'm a ❤️ 1 line "comment"
-34 "54" 234 5
+34 "54" 234 5;
 
 {trueH}
 
@@ -56,11 +56,11 @@ fn main() {
         (TokenName::MultiLineComment, r"^/\*[\s\S]*?\*/"),
         (TokenName::StringLiteral, r#"^"[^"]*""#),
         (TokenName::IntegerLiteral, r"^\d+"),
-        (TokenName::Punctuator, r"^[\{\}\.\+\-=/\*]"),
+        (TokenName::Punctuator, r"^[\{\}\.\+\-=/\*;]"),
         (
             TokenName::Identifier,
             // [\p{Emoji}\p{Emoji_Component}&&[^#\*]]
-            r"^[\p{L}_[\p{Emoji}\p{Emoji_Component}&&[^#\*]]][\p{L}\p{N}_[\p{Emoji}\p{Emoji_Component}&&[^#\*]]]*",
+            r"^[_\p{L}[\p{Emoji}\p{Emoji_Component}&&[^#\*]]][_\p{L}[\p{Emoji}\p{Emoji_Component}&&[^#\*]\p{N}]]*",
         ),
     ];
     let res = specs
