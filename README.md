@@ -2,44 +2,7 @@
 
 Maybe lets try a simple math expression first:
 
-https://createlang.rs/01_calculator/grammar_lexer_parser.html
-
-```
-Program = _{ SOI ~ Expr ~ EOF }
-
-Expr = { UnaryExpr | BinaryExpr }
-
-Term = _{Int | "(" ~ Expr ~ ")" }
-
-UnaryExpr = { Operator ~ Term }
-
-BinaryExpr = { Term ~ (Operator ~ Term)* }
-
-Operator = { "+" | "-" }
-
-Int = @{ Operator? ~ ASCII_DIGIT+ }
-
-WHITESPACE = _{ " " | "\t" }
-
-EOF = _{ EOI | ";" }
-```
-
-```
-Expr: + Int
-    | + (Expr)
-    | - Int
-    | - (Expr)
-    | Int (+ Int)* // Int || Int + Int + Int + Int
-    | Int + (Expr)
-    | Int - Int
-    | Int - (Expr)
-    | (Expr) + Int
-    | (Expr) + (Expr)
-    | (Expr) - Int
-    | (Expr) - (Expr)
-```
-
-Better thing for precendence. So we can differentiate between non-terminals E and terminals T:
+Better thing for precendence. So we can differentiate between terminals and non-terminals:
 ```
 E -> T
    | T + E
@@ -52,7 +15,7 @@ T -> Int
 
 ===============
 
-ε = nothing more to add
+LL(1) implementation is essentially this:
 
 E -> T -> + E
         | - E
@@ -62,6 +25,8 @@ T -> Int -> * T
           | ε
    | (E)
    | -T
+
+(ε = nothing more to add)
 ```
 
 Example:

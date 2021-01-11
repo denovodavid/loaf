@@ -24,6 +24,7 @@ const TOKEN_SPECS: &[(TokenClass, &str)] = &[
     // ),
 ];
 
+#[derive(Debug, Clone)]
 pub struct Lexer {
     res: Vec<(TokenClass, Regex)>,
     source: String,

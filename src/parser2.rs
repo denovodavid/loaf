@@ -1,14 +1,12 @@
 use crate::lexer;
 
 #[derive(Debug, Clone)]
-pub struct ParseTree(Option<lexer::Token>, Vec<ParseTree>);
-
-impl ParseTree {
-    pub fn is_empty(&self) -> bool {
-        self.0.is_none() && self.1.is_empty()
-    }
+pub enum ParseTree {
+    Token(lexer::Token),
+    Block(Vec<ParseTree>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Parser {
     lexer: lexer::Lexer,
 }
@@ -25,30 +23,29 @@ impl Parser {
             self.expr1_1()
                 .or_else(|| self.expr1_2())
                 .or_else(|| self.expr1_3())
-                .and_then(|mut tree| {
-                    if tree.is_empty() {
-                        tree = term
-                    } else {
-                        tree.1.insert(0, term);
+                .and_then(|tree| match tree {
+                    ParseTree::Block(mut block) if !block.is_empty() => {
+                        block.insert(0, term);
+                        Some(ParseTree::Block(block))
                     }
-                    Some(tree)
+                    _ => Some(term),
                 })
         })
     }
     fn expr1_1(&mut self) -> Option<ParseTree> {
         self.plus().and_then(|plus| {
             let expr = self.expr().expect("Expected expression");
-            Some(ParseTree(None, vec![plus, expr]))
+            Some(ParseTree::Block(vec![plus, expr]))
         })
     }
     fn expr1_2(&mut self) -> Option<ParseTree> {
         self.minus().and_then(|minus| {
             let expr = self.expr().expect("Expected expression");
-            Some(ParseTree(None, vec![minus, expr]))
+            Some(ParseTree::Block(vec![minus, expr]))
         })
     }
     fn expr1_3(&mut self) -> Option<ParseTree> {
-        Some(ParseTree(None, vec![]))
+        Some(ParseTree::Block(vec![]))
     }
     fn term(&mut self) -> Option<ParseTree> {
         self.term1()
@@ -60,42 +57,41 @@ impl Parser {
             self.term1_1()
                 .or_else(|| self.term1_2())
                 .or_else(|| self.term1_3())
-                .and_then(|mut tree| {
-                    if tree.is_empty() {
-                        tree = int
-                    } else {
-                        tree.1.insert(0, int);
+                .and_then(|tree| match tree {
+                    ParseTree::Block(mut block) => {
+                        block.insert(0, int);
+                        Some(ParseTree::Block(block))
                     }
-                    Some(tree)
+                    _ => Some(int),
                 })
         })
     }
     fn term1_1(&mut self) -> Option<ParseTree> {
         self.multiply().and_then(|multiply| {
             let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![multiply, term]))
+            Some(ParseTree::Block(vec![multiply, term]))
         })
     }
     fn term1_2(&mut self) -> Option<ParseTree> {
         self.divide().and_then(|divide| {
             let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![divide, term]))
+            Some(ParseTree::Block(vec![divide, term]))
         })
     }
     fn term1_3(&mut self) -> Option<ParseTree> {
-        Some(ParseTree(None, vec![]))
+        Some(ParseTree::Block(vec![]))
     }
     fn term2(&mut self) -> Option<ParseTree> {
         self.open_paren().and_then(|open_paren| {
             let expr = self.expr().expect("Expected expression");
             let closed_paren = self.closed_paren().expect("Expected closed parenthesis");
-            Some(ParseTree(None, vec![open_paren, expr, closed_paren]))
+            Some(ParseTree::Block(vec![open_paren, expr, closed_paren]))
         })
     }
     fn term3(&mut self) -> Option<ParseTree> {
         self.minus().and_then(|minus| {
             let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![minus, term]))
+            Some(ParseTree::Block(vec![minus, term]))
         })
     }
     fn int(&mut self) -> Option<ParseTree> {
@@ -123,7 +119,7 @@ impl Parser {
         self.lexer.peek().and_then(|token| {
             if token.class == token_class {
                 self.lexer.next();
-                Some(ParseTree(Some(token), vec![]))
+                Some(ParseTree::Token(token))
             } else {
                 None
             }
