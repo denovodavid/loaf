@@ -21,8 +21,8 @@ impl Parser {
     pub fn expr1(&mut self) -> Option<ParseTree> {
         self.term().and_then(|term| {
             self.expr1_1()
-                .or_else(|| self.expr1_2())
-                .or_else(|| self.expr1_3())
+                .or(self.expr1_2())
+                .or(self.expr1_3())
                 .and_then(|tree| match tree {
                     ParseTree::Block(mut block) if !block.is_empty() => {
                         block.insert(0, term);
@@ -49,14 +49,14 @@ impl Parser {
     }
     fn term(&mut self) -> Option<ParseTree> {
         self.term1()
-            .or_else(|| self.term2())
-            .or_else(|| self.term3())
+            .or(self.term2())
+            .or(self.term3())
     }
     fn term1(&mut self) -> Option<ParseTree> {
         self.int().and_then(|int| {
             self.term1_1()
-                .or_else(|| self.term1_2())
-                .or_else(|| self.term1_3())
+                .or(self.term1_2())
+                .or(self.term1_3())
                 .and_then(|tree| match tree {
                     ParseTree::Block(mut block) => {
                         block.insert(0, int);
