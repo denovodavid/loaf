@@ -1,129 +1,97 @@
-use crate::lexer;
+use crate::lexer::{Lexer, Token, TokenClass};
 
 #[derive(Debug, Clone)]
-pub struct ParseTree(Option<lexer::Token>, Vec<ParseTree>);
-
-impl ParseTree {
-    pub fn is_empty(&self) -> bool {
-        self.0.is_none() && self.1.is_empty()
-    }
+pub enum ExprCtx {
+    Int(Token),
+    Block(Token, Box<ExprCtx>, Token),
+    Add(Box<ExprCtx>, Token, Box<ExprCtx>),
+    Subtract(Box<ExprCtx>, Token, Box<ExprCtx>),
+    Negate(Token, Box<ExprCtx>),
+    Multiply(Box<ExprCtx>, Token, Box<ExprCtx>),
+    Divide(Box<ExprCtx>, Token, Box<ExprCtx>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Parser {
-    lexer: lexer::Lexer,
+    lexer: Lexer,
 }
 
 impl Parser {
-    pub fn new(lexer: lexer::Lexer) -> Self {
+    pub fn new(lexer: Lexer) -> Self {
         Self { lexer }
     }
-    pub fn expr(&mut self) -> Option<ParseTree> {
-        self.expr1()
+    pub fn e(&mut self) -> Option<ExprCtx> {
+        self.e1()
     }
-    pub fn expr1(&mut self) -> Option<ParseTree> {
-        self.term().and_then(|term| {
-            self.expr1_1()
-                .or_else(|| self.expr1_2())
-                .or_else(|| self.expr1_3())
-                .and_then(|mut tree| {
-                    if tree.is_empty() {
-                        tree = term
-                    } else {
-                        tree.1.insert(0, term);
-                    }
-                    Some(tree)
-                })
+    pub fn e1(&mut self) -> Option<ExprCtx> {
+        self.t().and_then(|term| {
+            if let Some(plus) = self.plus() {
+                let expr = self.e().expect("Expected expression");
+                Some(ExprCtx::Add(Box::new(term), plus, Box::new(expr)))
+            } else if let Some(minus) = self.minus() {
+                let expr = self.e().expect("Expected expression");
+                Some(ExprCtx::Subtract(Box::new(term), minus, Box::new(expr)))
+            } else {
+                Some(term)
+            }
         })
     }
-    fn expr1_1(&mut self) -> Option<ParseTree> {
-        self.plus().and_then(|plus| {
-            let expr = self.expr().expect("Expected expression");
-            Some(ParseTree(None, vec![plus, expr]))
-        })
+    fn t(&mut self) -> Option<ExprCtx> {
+        self.t1().or(self.t2()).or(self.t3())
     }
-    fn expr1_2(&mut self) -> Option<ParseTree> {
-        self.minus().and_then(|minus| {
-            let expr = self.expr().expect("Expected expression");
-            Some(ParseTree(None, vec![minus, expr]))
-        })
-    }
-    fn expr1_3(&mut self) -> Option<ParseTree> {
-        Some(ParseTree(None, vec![]))
-    }
-    fn term(&mut self) -> Option<ParseTree> {
-        self.term1()
-            .or_else(|| self.term2())
-            .or_else(|| self.term3())
-    }
-    fn term1(&mut self) -> Option<ParseTree> {
+    fn t1(&mut self) -> Option<ExprCtx> {
         self.int().and_then(|int| {
-            self.term1_1()
-                .or_else(|| self.term1_2())
-                .or_else(|| self.term1_3())
-                .and_then(|mut tree| {
-                    if tree.is_empty() {
-                        tree = int
-                    } else {
-                        tree.1.insert(0, int);
-                    }
-                    Some(tree)
-                })
+            if let Some(multiply) = self.multiply() {
+                let term = self.t().expect("Expected term");
+                Some(ExprCtx::Multiply(Box::new(int), multiply, Box::new(term)))
+            } else if let Some(divide) = self.divide() {
+                let term = self.t().expect("Expected term");
+                Some(ExprCtx::Divide(Box::new(int), divide, Box::new(term)))
+            } else {
+                Some(int)
+            }
         })
     }
-    fn term1_1(&mut self) -> Option<ParseTree> {
-        self.multiply().and_then(|multiply| {
-            let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![multiply, term]))
+    fn t2(&mut self) -> Option<ExprCtx> {
+        self.l_paren().and_then(|l_paren| {
+            let expr = self.e().expect("Expected expression");
+            let r_paren = self.r_paren().expect("Expected right parenthesis");
+            Some(ExprCtx::Block(l_paren, Box::new(expr), r_paren))
         })
     }
-    fn term1_2(&mut self) -> Option<ParseTree> {
-        self.divide().and_then(|divide| {
-            let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![divide, term]))
-        })
-    }
-    fn term1_3(&mut self) -> Option<ParseTree> {
-        Some(ParseTree(None, vec![]))
-    }
-    fn term2(&mut self) -> Option<ParseTree> {
-        self.open_paren().and_then(|open_paren| {
-            let expr = self.expr().expect("Expected expression");
-            let closed_paren = self.closed_paren().expect("Expected closed parenthesis");
-            Some(ParseTree(None, vec![open_paren, expr, closed_paren]))
-        })
-    }
-    fn term3(&mut self) -> Option<ParseTree> {
+    fn t3(&mut self) -> Option<ExprCtx> {
         self.minus().and_then(|minus| {
-            let term = self.term().expect("Expected term");
-            Some(ParseTree(None, vec![minus, term]))
+            let term = self.t().expect("Expected term");
+            Some(ExprCtx::Negate(minus, Box::new(term)))
         })
     }
-    fn int(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::IntegerLiteral)
+    fn int(&mut self) -> Option<ExprCtx> {
+        self.terminal(TokenClass::IntLit)
+            .and_then(|value| Some(ExprCtx::Int(value)))
     }
-    fn plus(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::PlusPunctuator)
+    fn plus(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::PlusPunc)
     }
-    fn minus(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::MinusPunctuator)
+    fn minus(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::MinusPunc)
     }
-    fn multiply(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::StarPunctuator)
+    fn multiply(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::StarPunc)
     }
-    fn divide(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::SlashPunctuator)
+    fn divide(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::SlashPunc)
     }
-    fn open_paren(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::OpenParenPunctuator)
+    fn l_paren(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::LParenPunc)
     }
-    fn closed_paren(&mut self) -> Option<ParseTree> {
-        self.terminal(lexer::TokenClass::ClosedParenPunctuator)
+    fn r_paren(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::RParenPunc)
     }
-    fn terminal(&mut self, token_class: lexer::TokenClass) -> Option<ParseTree> {
+    fn terminal(&mut self, token_class: TokenClass) -> Option<Token> {
         self.lexer.peek().and_then(|token| {
             if token.class == token_class {
                 self.lexer.next();
-                Some(ParseTree(Some(token), vec![]))
+                Some(token)
             } else {
                 None
             }

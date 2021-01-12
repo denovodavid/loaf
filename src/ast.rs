@@ -1,5 +1,5 @@
-use crate::lexer::{Token, TokenClass};
-use crate::parser2::*;
+use crate::parser::ExprCtx;
+use crate::lexer::Token;
 
 #[derive(Debug, Clone)]
 pub enum Ast {
@@ -12,98 +12,33 @@ pub enum Ast {
 }
 
 impl Ast {
-    pub fn new(ptree: &ParseTree) -> Self {
-        match ptree {
-            ParseTree::Token(token) => match token.class {
-                TokenClass::IntegerLiteral => Ast::Int(token.value.parse().unwrap()),
-                _ => panic!(),
-            },
-            ParseTree::Block(block) => Self::block(&block)
-                .or(Self::int(&block))
-                .or(Self::add(&block))
-                .or(Self::subtract(&block))
-                .or(Self::negate(&block))
-                .or(Self::multiply(&block))
-                .or(Self::divide(&block))
-                .unwrap(),
+    pub fn new(ptree: &Box<ExprCtx>) -> Self {
+        match ptree.as_ref() {
+            ExprCtx::Int(token) => Self::int(token),
+            ExprCtx::Block(_, expr, _) => Self::new(expr),
+            ExprCtx::Add(lhs, _, rhs) => Self::add(lhs, rhs),
+            ExprCtx::Subtract(lhs, _, rhs) => Self::subtract(lhs, rhs),
+            ExprCtx::Negate(_, expr) => Self::negate(expr),
+            ExprCtx::Multiply(lhs, _, rhs) => Self::multiply(lhs, rhs),
+            ExprCtx::Divide(lhs, _, rhs) => Self::divide(lhs, rhs),
         }
     }
-    fn block(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [ParseTree::Token(Token {
-                class: TokenClass::OpenParenPunctuator,
-                ..
-            }), ptree, ParseTree::Token(Token {
-                class: TokenClass::ClosedParenPunctuator,
-                ..
-            })] => Some(Self::new(ptree)),
-            _ => None,
-        }
+    fn int(token: &Token) -> Self {
+        Self::Int(token.value.parse().unwrap())
     }
-    fn int(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [ParseTree::Token(Token {
-                class: TokenClass::IntegerLiteral,
-                value,
-            })] => Some(Ast::Int(value.parse().unwrap())),
-            _ => None,
-        }
+    fn add(lhs: &Box<ExprCtx>, rhs: &Box<ExprCtx>) -> Self {
+        Self::Add(Box::new(Self::new(lhs)), Box::new(Self::new(rhs)))
     }
-    fn add(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [lhs, ParseTree::Token(Token {
-                class: TokenClass::PlusPunctuator,
-                ..
-            }), rhs] => Some(Ast::Add(
-                Box::new(Self::new(lhs)),
-                Box::new(Self::new(rhs)),
-            )),
-            _ => None,
-        }
+    fn subtract(lhs: &Box<ExprCtx>, rhs: &Box<ExprCtx>) -> Self {
+        Self::Subtract(Box::new(Self::new(lhs)), Box::new(Self::new(rhs)))
     }
-    fn subtract(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [lhs, ParseTree::Token(Token {
-                class: TokenClass::MinusPunctuator,
-                ..
-            }), rhs] => Some(Ast::Subtract(
-                Box::new(Self::new(lhs)),
-                Box::new(Self::new(rhs)),
-            )),
-            _ => None,
-        }
+    fn negate(expr: &Box<ExprCtx>) -> Self {
+        Self::Negate(Box::new(Self::new(expr)))
     }
-    fn negate(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [ParseTree::Token(Token {
-                class: TokenClass::MinusPunctuator,
-                ..
-            }), rhs] => Some(Ast::Negate(Box::new(Self::new(rhs)))),
-            _ => None,
-        }
+    fn multiply(lhs: &Box<ExprCtx>, rhs: &Box<ExprCtx>) -> Self {
+        Self::Multiply(Box::new(Self::new(lhs)), Box::new(Self::new(rhs)))
     }
-    fn multiply(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [lhs, ParseTree::Token(Token {
-                class: TokenClass::StarPunctuator,
-                ..
-            }), rhs] => Some(Ast::Multiply(
-                Box::new(Self::new(lhs)),
-                Box::new(Self::new(rhs)),
-            )),
-            _ => None,
-        }
-    }
-    fn divide(block: &[ParseTree]) -> Option<Ast> {
-        match block {
-            [lhs, ParseTree::Token(Token {
-                class: TokenClass::SlashPunctuator,
-                ..
-            }), rhs] => Some(Ast::Divide(
-                Box::new(Self::new(lhs)),
-                Box::new(Self::new(rhs)),
-            )),
-            _ => None,
-        }
+    fn divide(lhs: &Box<ExprCtx>, rhs: &Box<ExprCtx>) -> Self {
+        Self::Divide(Box::new(Self::new(lhs)), Box::new(Self::new(rhs)))
     }
 }
