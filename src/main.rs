@@ -1,6 +1,7 @@
 mod ast;
 mod lexer;
 mod parser;
+mod interpreter;
 
 const SOURCE_CODE: &str = r###"
 // 911
@@ -23,4 +24,5 @@ fn main() {
     println!("{:#?}", ptree);
     let ast = ast::Ast::new(&Box::new(ptree));
     println!("{:?}", ast);
+    println!("{:?}", interpreter::interpret(&ast));
 }
