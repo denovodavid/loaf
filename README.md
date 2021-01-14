@@ -2,8 +2,8 @@
 
 Maybe lets try a simple math expression first:
 
-Better thing for precendence. So we can differentiate between terminals and non-terminals:
 ```
+S -> E;*
 E -> T
    | T + E
    | T - E
@@ -17,14 +17,16 @@ T -> Int
 
 LL(1) implementation is essentially this:
 
+SL -> S*
+S -> E;
 E -> T -> + E
         | - E
         | ε
 T -> Int -> * T
           | / T
           | ε
-   | (E)
-   | -T
+   | ( E )
+   | - T
 
 (ε = nothing more to add)
 ```

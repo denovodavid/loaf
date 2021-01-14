@@ -1,6 +1,12 @@
 use crate::lexer::{Lexer, Token, TokenClass};
 
 #[derive(Debug, Clone)]
+pub struct StmtListCtx(pub Vec<StmtCtx>);
+
+#[derive(Debug, Clone)]
+pub struct StmtCtx(pub Box<ExprCtx>, pub Token);
+
+#[derive(Debug, Clone)]
 pub enum ExprCtx {
     Int(Token),
     Block(Token, Box<ExprCtx>, Token),
@@ -19,6 +25,19 @@ pub struct Parser {
 impl Parser {
     pub fn new(lexer: Lexer) -> Self {
         Self { lexer }
+    }
+    pub fn sl(&mut self) -> StmtListCtx {
+        let mut stmt_list = vec![];
+        while let Some(stmt) = self.s() {
+            stmt_list.push(stmt);
+        }
+        StmtListCtx(stmt_list)
+    }
+    pub fn s(&mut self) -> Option<StmtCtx> {
+        self.e().and_then(|expr| {
+            let semi = self.semicolon().expect("Expected semicolon");
+            Some(StmtCtx(Box::new(expr), semi))
+        })
     }
     pub fn e(&mut self) -> Option<ExprCtx> {
         self.e1()
@@ -86,6 +105,9 @@ impl Parser {
     }
     fn r_paren(&mut self) -> Option<Token> {
         self.terminal(TokenClass::RParenPunc)
+    }
+    fn semicolon(&mut self) -> Option<Token> {
+        self.terminal(TokenClass::SemiColonPunc)
     }
     fn terminal(&mut self, token_class: TokenClass) -> Option<Token> {
         self.lexer.peek().and_then(|token| {

@@ -12,7 +12,7 @@ const TOKEN_SPECS: &[(TokenClass, &str)] = &[
     (TokenClass::SlashPunc, r"^/"),
     (TokenClass::LParenPunc, r"^\("),
     (TokenClass::RParenPunc, r"^\)"),
-    // (TokenClass::SemiColonPunctuator, r"^;"),
+    (TokenClass::SemiColonPunc, r"^;"),
     // (
     //     TokenClass::Punctuator(Punctuator::Unknown),
     //     r"^[\{\}()\.\+\-=/\*;]",
@@ -108,6 +108,7 @@ pub enum TokenClass {
     SlashPunc,
     LParenPunc,
     RParenPunc,
+    SemiColonPunc,
     // Identifier,
 }
 
