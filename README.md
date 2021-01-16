@@ -29,6 +29,24 @@ T -> Int -> * T
    | - T
 
 (ε = nothing more to add)
+
+===============
+
+Left-derivded form:
+
+L -> S*
+S -> E ;
+E -> T X
+X -> + E
+   | - E
+   | ε
+T -> Int Y
+   | ( E )
+   | - T
+Y -> * T
+   | / T
+   | ε
+
 ```
 
 Example:
