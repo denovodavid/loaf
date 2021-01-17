@@ -24,74 +24,64 @@ const TOKEN_SPECS: &[(TokenClass, &str)] = &[
     // ),
 ];
 
+lazy_static! {
+    static ref RES: Vec<(TokenClass, Regex)> = TOKEN_SPECS
+        .iter()
+        .map(|&(tc, r)| (tc, Regex::new(r).unwrap()))
+        .collect();
+}
+
 #[derive(Debug, Clone)]
 pub struct Lexer {
-    res: Vec<(TokenClass, Regex)>,
     source: String,
     cursor: usize,
-    peek: Option<Token>,
 }
 
 impl Lexer {
     pub fn new(source: String) -> Self {
-        let res = TOKEN_SPECS
-            .iter()
-            .map(|&(tc, r)| (tc, Regex::new(r).unwrap()))
-            .collect::<Vec<_>>();
-        let mut lexer = Self {
-            res,
-            source,
-            cursor: 0,
-            peek: None,
-        };
-        lexer.peek = lexer.token();
-        lexer
+        Self { source, cursor: 0 }
     }
-    fn token(&mut self) -> Option<Token> {
-        while self.cursor < self.source.len() {
-            let token = self
-                .res
-                .iter()
-                .find_map(|(tc, re)| {
-                    re.find(&self.source[self.cursor..]).and_then(|m| {
-                        Some(Token {
-                            class: *tc,
-                            value: m.as_str().to_string(),
-                        })
-                    })
+    fn next_token(&mut self) -> Option<Token> {
+        RES.iter().find_map(|(tc, re)| {
+            re.find(&self.source[self.cursor..]).and_then(|m| {
+                Some(Token {
+                    class: *tc,
+                    value: m.as_str().to_string(),
                 })
-                .unwrap_or_else(|| {
-                    let c = &self.source[self.cursor..].chars().next().unwrap();
-                    panic!(
+            })
+        })
+    }
+    fn lex(&mut self) -> Option<Token> {
+        if self.cursor < self.source.len() {
+            let token = match self.next_token() {
+                Some(token) => token,
+                None => match &self.source[self.cursor..].chars().next() {
+                    Some(c) => panic!(
                         "Invalid token, \"{}\" ({}), at position {}.",
                         c,
                         c.escape_unicode(),
                         self.cursor
-                    )
-                });
-            return match token.class {
+                    ),
+                    None => panic!("Unknown invalid token at position {}.", self.cursor),
+                },
+            };
+            self.cursor = self.cursor + token.value.len();
+            match token.class {
                 TokenClass::Whitespace
                 | TokenClass::SingleLineComment
-                | TokenClass::MultiLineComment => {
-                    self.eat(&token);
-                    self.token()
-                }
+                | TokenClass::MultiLineComment => self.lex(),
                 _ => Some(token),
-            };
-        }
-        None
-    }
-    pub fn peek(&self) -> Option<Token> {
-        self.peek.clone()
-    }
-    pub fn next(&mut self) {
-        if let Some(token) = self.peek() {
-            self.eat(&token);
-            self.peek = self.token();
+            }
+        } else {
+            None
         }
     }
-    fn eat(&mut self, token: &Token) {
-        self.cursor = self.cursor + token.value.len();
+}
+
+impl Iterator for Lexer {
+    type Item = Token;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.lex()
     }
 }
 

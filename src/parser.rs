@@ -1,4 +1,5 @@
-use crate::lexer::{Lexer, Token, TokenClass};
+use crate::lexer::{Token, TokenClass};
+use std::iter::Peekable;
 
 #[derive(Debug, Clone)]
 pub struct StmtListCtx(pub Vec<StmtCtx>);
@@ -18,31 +19,42 @@ pub enum ExprCtx {
 }
 
 #[derive(Debug, Clone)]
-pub struct Parser {
-    lexer: Lexer,
+pub struct Parser<I>
+where
+    I: Iterator<Item = Token>,
+{
+    lexer: Peekable<I>,
 }
 
-impl Parser {
-    pub fn new(lexer: Lexer) -> Self {
-        Self { lexer }
+impl<I> Parser<I>
+where
+    I: Iterator<Item = Token>,
+{
+    pub fn new(lexer: I) -> Self {
+        Self {
+            lexer: lexer.peekable(),
+        }
     }
-    pub fn sl(&mut self) -> StmtListCtx {
+    pub fn parse(&mut self) -> StmtListCtx {
+        self.sl()
+    }
+    fn sl(&mut self) -> StmtListCtx {
         let mut stmt_list = vec![];
         while let Some(stmt) = self.s() {
             stmt_list.push(stmt);
         }
         StmtListCtx(stmt_list)
     }
-    pub fn s(&mut self) -> Option<StmtCtx> {
+    fn s(&mut self) -> Option<StmtCtx> {
         self.e().and_then(|expr| {
             let semi = self.semicolon().expect("Expected semicolon");
             Some(StmtCtx(Box::new(expr), semi))
         })
     }
-    pub fn e(&mut self) -> Option<ExprCtx> {
+    fn e(&mut self) -> Option<ExprCtx> {
         self.e1()
     }
-    pub fn e1(&mut self) -> Option<ExprCtx> {
+    fn e1(&mut self) -> Option<ExprCtx> {
         self.t().and_then(|term| {
             if let Some(plus) = self.plus() {
                 let expr = self.e().expect("Expected expression");
@@ -110,13 +122,11 @@ impl Parser {
         self.terminal(TokenClass::SemiColonPunc)
     }
     fn terminal(&mut self, token_class: TokenClass) -> Option<Token> {
-        self.lexer.peek().and_then(|token| {
-            if token.class == token_class {
-                self.lexer.next();
-                Some(token)
-            } else {
-                None
-            }
-        })
+        // TODO: stable in 1.50
+        // self.lexer.next_if(|token| token.class == token_class)
+        match self.lexer.peek() {
+            Some(token) if token.class == token_class => self.lexer.next(),
+            _ => None,
+        }
     }
 }
