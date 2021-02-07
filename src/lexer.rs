@@ -41,7 +41,7 @@ impl Lexer {
     pub fn new(source: String) -> Self {
         Self { source, cursor: 0 }
     }
-    fn next_token(&mut self) -> Option<Token> {
+    fn next_token(&self) -> Option<Token> {
         RES.iter().find_map(|(tc, re)| {
             re.find(&self.source[self.cursor..]).and_then(|m| {
                 Some(Token {

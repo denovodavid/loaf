@@ -1,0 +1,203 @@
+{
+    "sheets": [
+        {
+            "name": "slr_parsing_table",
+            "description": "SLR(1) Parsing Table",
+            "displayColumn": "int",
+            "guid": "c7a9ad90-320d-4cd0-9415-78245f66ed2a",
+            "columns": [
+                {
+                    "typeStr": "int",
+                    "guid": "98e2c1dd-a360-47a4-adb3-fedcced0adf0",
+                    "description": "int field",
+                    "name": "int",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "c1d4036a-9b4c-4094-a75e-02bf2f6c3ac9",
+                    "description": "int field",
+                    "name": "+",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "e4f4b177-0fcb-449b-9425-a7cd4a41e719",
+                    "description": "int field",
+                    "name": "*",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "f32a7869-ecdc-4978-bb96-952107175427",
+                    "description": "int field",
+                    "name": "$",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "85c4a1d3-c791-45d4-939f-1a4ffa39d318",
+                    "description": "int field",
+                    "name": "E",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "9f50fd81-cdd1-4d12-98a1-a451b0c8d65b",
+                    "description": "int field",
+                    "name": "T",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                },
+                {
+                    "typeStr": "int",
+                    "guid": "691ab288-5e6e-4ad8-b5e9-457fa3af183c",
+                    "description": "int field",
+                    "name": "F",
+                    "min": -10000,
+                    "max": 100000,
+                    "iconName": "newInt",
+                    "configurable": {
+                        "name": "text",
+                        "description": "text",
+                        "min": "int",
+                        "max": "int",
+                        "defaultValue": "int"
+                    }
+                }
+            ],
+            "lines": [
+                {
+                    "guid": "b3ef2d72-cdde-4614-858c-7fb10e8a3d73",
+                    "id": "0",
+                    "int": 4,
+                    "E": 1,
+                    "T": 2,
+                    "F": 3
+                },
+                {
+                    "guid": "d882d0f6-5aad-48ae-a9cb-7114290da2b8",
+                    "id": "1",
+                    "+": 5,
+                    "$": -2
+                },
+                {
+                    "guid": "5733ecef-1776-4bd4-826e-bec7811d9778",
+                    "id": "2",
+                    "+": -1,
+                    "*": 6,
+                    "$": -1
+                },
+                {
+                    "guid": "806c9690-f553-48c3-9ed7-e388d159d924",
+                    "id": "3",
+                    "+": -1,
+                    "*": -1,
+                    "$": -1
+                },
+                {
+                    "guid": "42393f3b-c8d7-4a61-85c6-4cba1917c7fb",
+                    "id": "4",
+                    "+": -1,
+                    "*": -1,
+                    "$": -1
+                },
+                {
+                    "guid": "bdb9d298-78dc-44ed-9717-1f38314ae089",
+                    "id": "5",
+                    "int": 4,
+                    "T": 7,
+                    "F": 3
+                },
+                {
+                    "guid": "148cdbfa-f17c-44bf-a347-4d1e43866d68",
+                    "id": "6",
+                    "int": 4,
+                    "F": 8
+                },
+                {
+                    "guid": "5c2c340f-b4c3-43e6-9941-1a5048d8ad8d",
+                    "id": "7",
+                    "+": -1,
+                    "*": 6,
+                    "$": -1
+                },
+                {
+                    "guid": "475cb437-b903-4ac6-90f8-be7de6a6aa57",
+                    "id": "8",
+                    "+": -1,
+                    "*": -1,
+                    "$": -1
+                }
+            ],
+            "hidden": false,
+            "isProps": false,
+            "configurable": {
+                "name": "text",
+                "description": "text",
+                "displayColumn": "columnSelect@name",
+                "columnSelect@name@displayColumn": {
+                    "allowedTypes": [
+                        "int",
+                        "float",
+                        "text",
+                        "longtext"
+                    ]
+                }
+            }
+        }
+    ]
+}

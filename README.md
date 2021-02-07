@@ -1,5 +1,7 @@
 # Loaf programming language.
 
+i shoudl probs use this: https://bottlecaps.de/rr/ui
+
 Maybe lets try a simple math expression first:
 
 ```
@@ -32,7 +34,7 @@ T -> Int -> * T
 
 ===============
 
-Left-derivded form:
+Or, more formally:
 
 L -> S*
 S -> E ;
